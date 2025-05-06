@@ -16,8 +16,8 @@ def get_db():
     finally:
         db.close()
 
-app.mount("/static", StaticFiles(directory="public"), name="public")
-templates = Jinja2Templates(directory="app/templates")
+app.mount("/static", StaticFiles(directory="TP03_DB/public"), name="public")
+templates = Jinja2Templates(directory="TP03_DB/app/templates")
 
 @app.get("/")
 async def root(request: Request):   
@@ -37,7 +37,7 @@ async def post_basic_form(
     print(f'username: {formusername}')
     print(f'email: {formemail}')
     return templates.TemplateResponse("users_create.html", {"request": request})
-    
+
 
 @app.post("/users/", response_model=schemas.User)
 def post_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
