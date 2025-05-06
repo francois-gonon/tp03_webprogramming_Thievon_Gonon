@@ -1,7 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException 
+from fastapi import FastAPI, Depends, HTTPException, Request, Form
 from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from .database import SessionLocal, engine
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -13,6 +15,29 @@ def get_db():
         yield db
     finally:
         db.close()
+
+app.mount("/static", StaticFiles(directory="public"), name="public")
+templates = Jinja2Templates(directory="app/templates")
+
+@app.get("/")
+async def root(request: Request):   
+    return templates.TemplateResponse(request, "home.html")
+
+@app.get('/basic')
+def get_basic_form(request: Request):
+    return templates.TemplateResponse("users_create.html", {"request": request})
+
+@app.post('/basic')
+async def post_basic_form(
+    request: Request, 
+    formusername: str = Form(...), 
+    formemail: str = Form(...), 
+    db: Session = Depends(get_db)
+):
+    print(f'username: {formusername}')
+    print(f'email: {formemail}')
+    return templates.TemplateResponse("users_create.html", {"request": request})
+    
 
 @app.post("/users/", response_model=schemas.User)
 def post_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
